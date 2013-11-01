@@ -3,8 +3,8 @@ define("range",["$", "widget", "base", "class", "events","./range-debug.css"],fu
     var $=require("$");
     var Widget = require("widget");
     require("./range-debug.css");
-        var Range=Widget.extend({
-                attrs: {
+	var Range=Widget.extend({
+		attrs: {
              // 可以是 Selector、jQuery 对象、或 DOM 元素集
             triggers: {
                 value: '',
@@ -35,7 +35,7 @@ define("range",["$", "widget", "base", "class", "events","./range-debug.css"],fu
             'click .range .next':'onNext'
         },
         setup:function(){
-                this.init();
+        	this.init();
         },
         init:function(){
             var strhtml="";
@@ -116,7 +116,7 @@ define("range",["$", "widget", "base", "class", "events","./range-debug.css"],fu
             rangeSub.css("width",rangeWidth + "px");
             $(".range-slider-handle").css("left",(rangeWidth-8) + "px");
         }
-        });
-        module.exports = Range;
+	});
+	module.exports = Range;
 
 })

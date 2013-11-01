@@ -51,15 +51,6 @@
     border-radius: 13px;
     cursor: pointer;
 }
-
-.range-slider-container .range-value{
-    font-size: 10px;
-    color: #555555;
-    position: relative;
-    bottom: 12px;
-    left: 2px;
-}
-
 .range-slider-container .range-slider .range-slider-sub {
     background-color: #66c8c8;
     height: 100%;
