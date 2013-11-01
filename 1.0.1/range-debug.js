@@ -3,8 +3,8 @@ define("range",["$", "widget", "base", "class", "events","./range-debug.css"],fu
     var $=require("$");
     var Widget = require("widget");
     require("./range-debug.css");
-        var Range=Widget.extend({
-                attrs: {
+	var Range=Widget.extend({
+		attrs: {
              // 可以是 Selector、jQuery 对象、或 DOM 元素集
             triggers: {
                 value: '',
@@ -21,6 +21,7 @@ define("range",["$", "widget", "base", "class", "events","./range-debug.css"],fu
             delay: 100,
             minValue:-10,
             maxValue:100,
+            unit:'',
             lattice:10,
             actualValue:0,
             // 初始切换到哪个面板
@@ -31,11 +32,31 @@ define("range",["$", "widget", "base", "class", "events","./range-debug.css"],fu
         events: {
             'mousedown .range-slider-container': 'onStart',
             'mouseup .range-slider-container' :'onEnd',
+            'mouseout .range-slider-container':'unbindEvent',
             'click .range .prev':'onPrev',
             'click .range .next':'onNext'
         },
         setup:function(){
-                this.init();
+            var actualValue = this.get("actualValue"),
+                minValue = this.get("minValue"),
+                maxValue = this.get("maxValue");
+
+            if(actualValue< minValue || actualValue >maxValue){
+                alert("初始值不能小于最小设定值 或大于最大设定值");
+                return false;
+            }
+        	this.init();
+            this.resize(actualValue);
+        },
+        resize:function(value){
+            var rangeSub=this.element.find(".range-slider-sub");
+            var width = parseInt(this.element.find(".range-slider").css("width")),
+                totalValue= this.get("maxValue") - this.get("minValue"),
+                rangeWidth=((value-this.get("minValue"))/totalValue) * width;
+
+            this.element.find(".range-value").html(value + this.get("unit"));
+            rangeSub.css("width",rangeWidth + "px");
+            this.element.find(".range-slider-handle").css("left",(rangeWidth-8) + "px");
         },
         init:function(){
             var strhtml="";
@@ -44,7 +65,7 @@ define("range",["$", "widget", "base", "class", "events","./range-debug.css"],fu
             strhtml+="  <div class=\"range-slider-container\">";
             strhtml+="      <div class=\"range-slider\">";
             strhtml+="          <div class=\"range-slider-sub\"></div>";
-            strhtml+="          <span class=\"range-slider-handle\"></span>";
+            strhtml+="          <span class=\"range-slider-handle\"><span class=\"range-value\"></span></span>";            
             strhtml+="      </div>";
             strhtml+="  </div>";
             strhtml+="  <a class=\"next\"></a>";
@@ -53,6 +74,10 @@ define("range",["$", "widget", "base", "class", "events","./range-debug.css"],fu
             this.element.html(strhtml);
         },
         onStart:function(e){
+            var minValue =this.get("minValue"),
+                maxValue =this.get("maxValue"),
+                unit =this.get("unit"),
+                totalValue= maxValue - minValue;
             this.element.find(".range-slider-container").bind("mousemove",function(e){
                 var rangeSub=$(this).find(".range-slider-sub");                      
                 var rangeWidth=e.clientX-rangeSub.offset().left,
@@ -61,9 +86,10 @@ define("range",["$", "widget", "base", "class", "events","./range-debug.css"],fu
                 if(rangeWidth<0){
                     rangeWidth=0;
                 }
-                if(rangeWidth>212){
-                    rangeWidth=212;
+                if(rangeWidth>214){
+                    rangeWidth=214;
                 }
+                $(this).find(".range-value").html((rangeWidth/width)*totalValue + minValue + unit);
                 rangeSub.css("width",rangeWidth + "px");
                 $(this).find(".range-slider-handle").css("left",(rangeWidth-8) + "px");  
             });
@@ -78,45 +104,55 @@ define("range",["$", "widget", "base", "class", "events","./range-debug.css"],fu
             if(rangeWidth<0){
                 rangeWidth=0;
             }
-            if(rangeWidth>212){
-                rangeWidth=212;
+            if(rangeWidth>214){
+                rangeWidth=214;
             }
             this.set("actualValue",((rangeWidth/width)*totalValue + this.get("minValue")));
+            this.element.find(".range-value").html(this.get("actualValue")  + this.get("unit"));
             rangeSub.css("width",rangeWidth + "px");
             this.element.find(".range-slider-handle").css("left",(rangeWidth-8) + "px");
         
         },
-        onPrev:function(){
-            var width = parseInt(this.element.find(".range-slider").css("width")),
+        unbindEvent:function(){
+            this.element.find(".range-slider-container").unbind("mousemove");
+        },
+        onPrev:function(e){
+            var width = parseInt($(this.element.selector).find(".range-slider").css("width")),
                 lattices =this.get("lattice"),
                 lattice =width/lattices,
-                rangeSub=this.element.find(".range-slider-sub"),
+                rangeSub=$(this.element.selector).find(".range-slider-sub"),
                 rangeWidth=parseInt(rangeSub.css("width")) -lattice,
-                totalValue= this.get("maxValue") - this.get("minValue");;
+                totalValue= this.get("maxValue") - this.get("minValue"),
+                actualValue =this.get("actualValue");
             
             if(rangeWidth<0){
                 rangeWidth=0;
             }
-            this.set("actualValue",((rangeWidth/width)*totalValue + this.get("minValue")));
+            this.set("actualValue",(actualValue- (totalValue/lattices)));
+            $(this.element.selector).find(".range-value").html(this.get("actualValue")  + this.get("unit"));
             rangeSub.css("width",rangeWidth + "px");
-            $(".range-slider-handle").css("left",(rangeWidth-8) + "px");
+            $(this.element.selector).find(".range-slider-handle").css("left",(rangeWidth-8) + "px");
         },
-        onNext:function(){
-            var width = parseInt(this.element.find(".range-slider").css("width")),
+        onNext:function(e){
+            var width = parseInt($(this.element.selector).find(".range-slider").css("width")),
                 lattices =this.get("lattice"),
                 lattice =width/lattices,
-                rangeSub=this.element.find(".range-slider-sub"),
+                rangeSub=$(this.element.selector).find(".range-slider-sub"),
                 rangeWidth=parseInt(rangeSub.css("width")) + lattice,
-                totalValue= this.get("maxValue") - this.get("minValue");;
+                totalValue= this.get("maxValue") - this.get("minValue"),
+                actualValue =this.get("actualValue");
 
-            if(rangeWidth>212){
-                rangeWidth=212;
+            if(rangeWidth>214){
+                rangeWidth=214;
             }
-            this.set("actualValue",((rangeWidth/width)*totalValue +this.get("minValue")));
+
+   
+            this.set("actualValue",(actualValue + (totalValue/lattices)));
+            $(this.element.selector).find(".range-value").html(this.get("actualValue")  + this.get("unit"));
             rangeSub.css("width",rangeWidth + "px");
-            $(".range-slider-handle").css("left",(rangeWidth-8) + "px");
+            $(this.element.selector).find(".range-slider-handle").css("left",(rangeWidth-8) + "px");
         }
-        });
-        module.exports = Range;
+	});
+	module.exports = Range;
 
 })
